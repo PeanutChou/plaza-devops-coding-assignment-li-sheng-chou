@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "plaza-devops-webapp.fullname" . }}-test-connection"
+  labels:
+    {{- include "plaza-devops-webapp.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "plaza-devops-webapp.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

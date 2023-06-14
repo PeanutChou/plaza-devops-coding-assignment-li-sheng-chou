@@ -1,0 +1,67 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+env:
+  PROJECT_ID: code-assignment-10
+  CLUSTER_NAME: plaza-devops-gke
+  CLUSTER_LOCATION: europe-north1-a
+  WORKLOAD_IDENTITY_PROVIDER: projects/365047560923/locations/global/workloadIdentityPools/pricer-github-pool/providers/github-actions
+  SERVICE_ACCOUNT: coding-assignment-sa@code-assignment-10.iam.gserviceaccount.com
+  USE_GKE_GCLOUD_AUTH_PLUGIN: True
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    if: github.event.review.state == 'approved'
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set environment variables
+        run: |
+          export candidate=$(echo '${{ github.event.pull_request.head.ref }}' | sed 's/candidate-//')
+          echo "candidate=$candidate)" >> $GITHUB_ENV
+          echo "namespace=candidate-$candidate" >> $GITHUB_ENV
+          echo "helm_release_name=candidate-$candidate" >> $GITHUB_ENV
+          echo "image_repository=eu.gcr.io/${{ env.PROJECT_ID }}/webapp-$candidate" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      # TODO: Add step(s) to run tests here
+
+      - name: Setup Workload Identity Federation
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Configure Docker login for GCR
+        run: |
+          gcloud auth configure-docker -q eu.gcr.io
+
+      # TODO: Add step(s) to build the docker image and push it to the container registry here
+
+      - name: Configure GKE cluster access
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          location: ${{ env.CLUSTER_LOCATION }}
+          cluster_name: ${{ env.CLUSTER_NAME }}
+
+      # TODO: Add step(s) to install/upgrade the application in the Kubernetes cluster here
