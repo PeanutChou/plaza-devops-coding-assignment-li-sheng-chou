@@ -1,7 +1,6 @@
 import requests
 import os
 from fastapi import FastAPI, HTTPException
-import asyncio
 
 app = FastAPI()
 
@@ -32,12 +31,13 @@ def get_star_wars_data(id:int):
 @app.get("/top-people-by-bmi")
 def get_star_wars_data_by_bmi():
     try:
-        # Better to use asyncio to async requests if can know the amount of pages
+        # Better to use asyncio to async requests if can know the total amount of pages
+        # Now it needs to be sync requests due to unknown pages in this scenario
         result = []
-        this_res = requests.get(f"https://swapi.dev/api/people", timeout=10).json()
+        this_res = requests.get(f"https://swapi.dev/api/people", timeout=5).json()
         data = [*this_res["results"]]
         while True:
-            this_res = requests.get(this_res["next"], timeout=10).json()
+            this_res = requests.get(this_res["next"], timeout=5).json()
             data = [*data,*this_res["results"]]
             if this_res["next"] == None:
                 break
@@ -53,9 +53,34 @@ def get_star_wars_data_by_bmi():
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail="Service Unavailable")
     except (KeyError, ValueError) as e:
-        print(e)
         raise HTTPException(status_code=500, detail="Data Processing Error")
-    
+
+@app.get("/top-people-by-bmi/v2")
+def get_star_wars_data_by_bmi_v2():
+    try:
+        result = []
+        this_res = requests.get(f"https://swapi.dev/api/people", timeout=5).json()
+        result = [*calculate_bmi(this_res["results"])]
+        while True:
+            this_res = requests.get(this_res["next"], timeout=5).json()
+            result = [*result,*calculate_bmi(this_res["results"])]
+            if this_res["next"] == None:
+                break
+        return sorted(result, key=lambda x: x["bmi"], reverse=True)[:20]
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=503, detail="Service Unavailable")
+    except (KeyError, ValueError) as e:
+        raise HTTPException(status_code=500, detail="Data Processing Error")
+
+# Let data analysis logic be modulized
+def calculate_bmi(json_array):
+    result = []
+    for each in json_array:
+        if each["mass"] != "unknown" and each["height"] != "unknown":
+            each = {**each, "bmi":round(float(each["mass"].replace(",","")) / (float(each["height"].replace(",","")) / 100) ** 2, 2)}
+            result = [*result, each]
+    return result
+
 if __name__ == "__main__":
     import uvicorn
     

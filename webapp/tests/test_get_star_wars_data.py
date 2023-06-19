@@ -21,8 +21,8 @@ def test_data_root_api():
     assert "detail" in response.json()
 
 def test_data_not_exist_api():
-    response = client.get("/data/invalid")
-    assert response.status_code == 422
+    response = client.get("/invalid")
+    assert response.status_code == 404
     assert "detail" in response.json()
 
 def test_data_id_not_int():

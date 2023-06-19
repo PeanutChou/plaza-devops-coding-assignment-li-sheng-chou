@@ -27,6 +27,7 @@ service:
   # Pass root message to deployment.yaml
   rootMessage: "Hello, World!"
 
+# added ingress part to manage network
 ingress:
   enabled: false
   annotations: {}
@@ -37,6 +38,7 @@ ingress:
 
 # Set data category here, and deployment yaml can get this value
 # Not sure about the meaning "data category to make it available in the web application through some mechanism"
-# So here I understand as variable (values) to pass to app, here I use os.env. But it will be the same way response of route "/"
+# So here I understand as variable (values) to pass to app, here I use os.env. 
+# But it will be the same way to pass message content of the response of route "/"
 dataCategory:
   exampleCategory: ""

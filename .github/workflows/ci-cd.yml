@@ -95,6 +95,7 @@ jobs:
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
           kubectl get services -o wide
 
+      # Another Solution
       # Use some HELM template such as deliverybot/helm will be more efficiently deploying
       - name: 'Deploy'
         uses: 'deliverybot/helm@v1'
