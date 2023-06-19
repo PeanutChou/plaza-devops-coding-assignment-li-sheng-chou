@@ -7,4 +7,6 @@ ADD . /app
 RUN pip install -r /app/requirements.txt
 
 WORKDIR /app
-CMD ["uvicorn","src.app:app","--reload"]
+CMD ["uvicorn","src.app:app","--reload","--host","0.0.0.0"]
+
+EXPOSE 8000
