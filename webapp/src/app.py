@@ -32,7 +32,7 @@ def get_star_wars_data(id:int):
 def get_star_wars_data_by_bmi():
     try:
         # Better to use asyncio to async requests if can know the total amount of pages
-        # Now it needs to be sync requests due to unknown pages in this scenario
+        # Now it needs to be sync requests due to unknown pages in this scenario (it takes 20s to response)
         result = []
         this_res = requests.get(f"https://swapi.dev/api/people", timeout=5).json()
         data = [*this_res["results"]]
@@ -55,6 +55,7 @@ def get_star_wars_data_by_bmi():
     except (KeyError, ValueError) as e:
         raise HTTPException(status_code=500, detail="Data Processing Error")
 
+# another way
 @app.get("/top-people-by-bmi/v2")
 def get_star_wars_data_by_bmi_v2():
     try:
