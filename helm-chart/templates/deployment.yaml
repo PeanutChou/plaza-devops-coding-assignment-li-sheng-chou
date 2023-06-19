@@ -35,3 +35,8 @@ spec:
             httpGet:
               path: /
               port: http
+        env:
+        - name: ROOT_MESSAGE
+          value: {{ .Values.service.rootMessage }}
+        - name: DATA_CATEGORY
+          value: {{ .Values.dataCategory.exampleCategory }}

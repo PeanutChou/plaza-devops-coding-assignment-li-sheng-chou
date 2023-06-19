@@ -11,6 +11,7 @@ env:
   WORKLOAD_IDENTITY_PROVIDER: projects/365047560923/locations/global/workloadIdentityPools/pricer-github-pool/providers/github-actions
   SERVICE_ACCOUNT: coding-assignment-sa@code-assignment-10.iam.gserviceaccount.com
   USE_GKE_GCLOUD_AUTH_PLUGIN: True
+  DEPLOYMENT_NAME: code-assignment-10-webapp
 
 jobs:
   build-and-deploy:
@@ -38,6 +39,16 @@ jobs:
           python-version: '3.x'
 
       # TODO: Add step(s) to run tests here
+      # install env first
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ./webapp/requirements.txt
+
+      # run pytest scripts
+      - name: Test with Pytest
+        run: |
+          pytest ./webapp/tests
 
       - name: Setup Workload Identity Federation
         id: auth
@@ -56,6 +67,15 @@ jobs:
           gcloud auth configure-docker -q eu.gcr.io
 
       # TODO: Add step(s) to build the docker image and push it to the container registry here
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          registry: gcr.io
+          project_id: ${{ env.PROJECT_ID }}
+          image_name: ${{ env.IMAGE_NAME }}
+          image_tag: latest
+          dockerfile: ./webapp/Dockerfile
 
       - name: Configure GKE cluster access
         uses: google-github-actions/get-gke-credentials@v1
@@ -65,3 +85,22 @@ jobs:
           cluster_name: ${{ env.CLUSTER_NAME }}
 
       # TODO: Add step(s) to install/upgrade the application in the Kubernetes cluster here
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Deploy
+        run: |
+          helm upgrade --install --name ${{ env.DEPLOYMENT_NAME }} -f ./helm-chart
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
+          kubectl get services -o wide
+
+      # Use some HELM template such as deliverybot/helm will be more efficiently deploying
+      - name: 'Deploy'
+        uses: 'deliverybot/helm@v1'
+        with:
+          release: ${{ env.DEPLOYMENT_NAME }}
+          namespace: 'default'
+          chart: './helm-chart'
+          token: '${{ github.token }}'
+          value-files: "values.yaml"

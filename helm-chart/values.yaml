@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: eu.gcr.io/code-assignment-10/webapp-candidateName
+  repository: eu.gcr.io/code-assignment-10/webapp-li-sheng-chou
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
@@ -24,3 +24,19 @@ serviceAccount:
 service:
   type: ClusterIP
   port: 80
+  # Pass root message to deployment.yaml
+  rootMessage: "Hello, World!"
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+
+# Set data category here, and deployment yaml can get this value
+# Not sure about the meaning "data category to make it available in the web application through some mechanism"
+# So here I understand as variable (values) to pass to app, here I use os.env. But it will be the same way response of route "/"
+dataCategory:
+  exampleCategory: ""
