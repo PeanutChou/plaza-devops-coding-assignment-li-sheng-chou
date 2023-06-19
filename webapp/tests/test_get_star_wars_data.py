@@ -34,3 +34,16 @@ def test_bmi_api():
     response = client.get("/top-people-by-bmi")
     assert response.status_code == 200
     assert response.json() != []
+
+## Online on prod test (portainer stack deploy)
+# version: "3"
+# services:
+#   fastapi:
+#     image: 'peanutchou/pricer-webapp'
+#     restart: unless-stopped
+#     ports:
+#       - '8005:8000'
+#     working_dir: /app
+# nginx reverse proxy:
+# https://thchiu.irmp.tw/pricer/data/1
+# https://thchiu.irmp.tw/pricer/top-people-by-bmi
