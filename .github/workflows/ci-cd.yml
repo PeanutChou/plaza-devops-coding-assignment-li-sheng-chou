@@ -97,11 +97,11 @@ jobs:
 
       # Another Solution
       # Use some HELM template such as deliverybot/helm will be more efficiently deploying
-      - name: 'Deploy'
-        uses: 'deliverybot/helm@v1'
+      - name: Deploy
+        uses: deliverybot/helm@v1
         with:
           release: ${{ env.DEPLOYMENT_NAME }}
           namespace: 'default'
           chart: './helm-chart'
           token: '${{ github.token }}'
-          value-files: "values.yaml"
+          value-files: 'values.yaml'
